@@ -1,5 +1,5 @@
 #including relu activaton and dropout after the first linear layer
-# prototype of gru network for pedestrian modeling
+# prototype of lstm network for pedestrian modeling
 # written by: Bryan Zhao and Ashish Roongta, Fall 2018
 # carnegie mellon university
 
@@ -72,9 +72,9 @@ parser.add_argument('--lambda_param', type=float, default=0.0005,
 # cuda parameter
 parser.add_argument('--use_cuda', action="store_true", default=False,
                  help='Use GPU or not')
-# GRU parameter
-parser.add_argument('--gru', action="store_true", default=False,
-                 help='True : GRU cell, False: gru cell')
+# lstm parameter
+parser.add_argument('--lstm', action="store_true", default=False,
+                 help='True : lstm cell, False: lstm cell')
 # drive option
 parser.add_argument('--drive', action="store_true", default=False,
                  help='Use Google drive or not')
@@ -105,12 +105,12 @@ cur_dataset = args.dataset_name
 
 data_dir = os.path.join('/home/roongtaaahsih/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/train')
 
-''' Class for defining the GRU Network '''
-class GRUNet(nn.Module):
+''' Class for defining the lstm Network '''
+class VanillaLSTMNet(nn.Module):
     def __init__(self):
-        super(GRUNet, self).__init__()
+        super(VanillaLSTMNet, self).__init__()
         
-        ''' Inputs to the GRUCell's are (input, (h_0, c_0)):
+        ''' Inputs to the lstmCell's are (input, (h_0, c_0)):
          1. input of shape (batch, input_size): tensor containing input 
          features
          2a. h_0 of shape (batch, hidden_size): tensor containing the 
@@ -134,10 +134,10 @@ class GRUNet(nn.Module):
         # linear layer to embed the input position
         self.input_embedding_layer = nn.Linear(self.input_size, self.embedding_size)
         
-        # define gru cell
-        self.gru_cell = nn.GRUCell(self.embedding_size, self.rnn_size)
+        # define lstm cell
+        self.lstm_cell = nn.LSTMCell(self.embedding_size, self.rnn_size)
 
-        # linear layer to map the hidden state of gru to output
+        # linear layer to map the hidden state of lstm to output
         self.output_layer = nn.Linear(self.rnn_size, self.output_size)
         
         # ReLU and dropout unit
@@ -165,14 +165,14 @@ class GRUNet(nn.Module):
             observed_step = observed_batch[step, :, :]
             lin_out = self.input_embedding_layer(observed_step.view(peds,2))
             input_embedded=self.dropout(self.relu(lin_out))
-            ht = self.gru_cell(input_embedded, ht)
+            ht,ct = self.lstm_cell(input_embedded, (ht,ct))
             out = self.output_layer(ht)
 
         # getting the predicted trajectory from the pedestrian 
         for i in range(pred_len):
             lin_out = self.input_embedding_layer(out)
             input_embedded=self.dropout(self.relu(lin_out))
-            ht= self.gru_cell(input_embedded, ht)
+            ht,ct = self.lstm_cell(input_embedded, (ht,ct))
             out = self.output_layer(ht)
             output_seq += [out]
             
@@ -180,7 +180,7 @@ class GRUNet(nn.Module):
         return output_seq
 
 # test function to calculate and return avg test loss after each epoch
-def test(gru_net,args,pred_len=0):
+def test(vanilla_lstm_net,args,pred_len=0):
 
     test_data_dir = os.path.join('/home/roongtaaahsih/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/test')
 
@@ -199,7 +199,7 @@ def test(gru_net,args,pred_len=0):
     for i, batch in enumerate(dataloader):
         test_observed_batch = batch[0]
         test_target_batch = batch[1]
-        out = gru_net(test_observed_batch, pred_len=pred_len) # forward pass of gru network for training
+        out = vanilla_lstm_net(test_observed_batch, pred_len=pred_len) # forward pass of lstm network for training
         cur_test_loss = criterion(out, test_target_batch) # calculate MSE loss
         test_loss.append(cur_test_loss.item())
         out1=out
@@ -235,8 +235,8 @@ def main(args):
     # load trained model, if applicable
 # if (cur_dataset != "eth"):
 #     print("loading data from {}...".format(cur_dataset))
-#     gru_net = torch.load('./saved_models/gru_model_' + cur_dataset + '_lr_0025_epoch_100_predlen_12.pt')
-#     gru_net.eval() # set dropout and batch normalization layers to evaluation mode before running inference
+#     lstm_net = torch.load('./saved_models/lstm_model_' + cur_dataset + '_lr_0025_epoch_100_predlen_12.pt')
+#     lstm_net.eval() # set dropout and batch normalization layers to evaluation mode before running inference
 
     num_epoch = args.num_epochs
     pred_len = args.pred_len
@@ -248,10 +248,10 @@ def main(args):
     ''' define the network, optimizer and criterion '''
     name="em64rnn128" # to add to the name of files
     # if (cur_dataset == "eth"):
-    gru_net = GRUNet()
+    vanilla_lstm_net = VanillaLSTMNet()
 
     criterion = nn.MSELoss() # MSE works best for difference between predicted and actual coordinate paths
-    optimizer = optim.Adam(gru_net.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(vanilla_lstm_net.parameters(), lr=learning_rate)
 
     # initialize lists for capturing losses/errors
     train_loss = []
@@ -277,7 +277,7 @@ def main(args):
                 # print("train_batch's shape", train_batch.shape)
                 # print("target_batch's shape", target_batch.shape)
                 seq, peds, coords = train_batch.shape # q is number of pedestrians 
-                out = gru_net(train_batch, pred_len=pred_len) # forward pass of gru network for training
+                out = vanilla_lstm_net(train_batch, pred_len=pred_len) # forward pass of lstm network for training
                 # print("out's shape:", out.shape)
                 optimizer.zero_grad() # zero out gradients
                 cur_train_loss = criterion(out, target_batch) # calculate MSE loss
@@ -303,8 +303,8 @@ def main(args):
         optimizer.step(closure) # update weights
 
         # save model at every epoch (uncomment) 
-        # torch.save(gru_net, './saved_models/gru_model_v3.pt')
-        # print("Saved gru_net!")
+        # torch.save(lstm_net, './saved_models/lstm_model_v3.pt')
+        # print("Saved lstm_net!")
         avg_train_loss.append(np.sum(train_loss)/len(train_loss))
         avg_train_avgD_error.append(np.sum(train_avgD_error)/len(train_avgD_error))
         avg_train_finalD_error.append(np.sum(train_finalD_error)/len(train_finalD_error))   
@@ -314,23 +314,23 @@ def main(args):
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print("average train loss: {}".format(avg_train_loss))
         print("average std loss: {}".format(std_train_loss))
-        avgTestLoss,avgD_test,finalD_test=test(gru_net,args,pred_len)
+        avgTestLoss,avgD_test,finalD_test=test(vanilla_lstm_net,args,pred_len)
         avg_test_loss.append(avgTestLoss)
         test_finalD_error.append(finalD_test)
         test_avgD_error.append(avgD_test)
         print("test finalD error: ",finalD_test)
         print("test avgD error: ",avgD_test)
-        #avg_test_loss.append(test(gru_net,args,pred_len)) ##calliing test function to return avg test loss at each epoch
+        #avg_test_loss.append(test(lstm_net,args,pred_len)) ##calliing test function to return avg test loss at each epoch
 
 
     '''after running through epochs, save your model and visualize.
        then, write your average losses and standard deviations of 
        losses to a text file for record keeping.'''
 
-    save_path = os.path.join('./saved_models/', 'gru_model_'+name+'_lr_' + str(learning_rate) + '_epoch_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ '.pt')
-    # torch.save(gru_net, './saved_models/gru_model_lr001_ep20.pt')
-    torch.save(gru_net, save_path)
-    print("saved gru_net! location: " + save_path)
+    save_path = os.path.join('./saved_models/', 'lstm_model_'+name+'_lr_' + str(learning_rate) + '_epoch_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ '.pt')
+    # torch.save(lstm_net, './saved_models/lstm_model_lr001_ep20.pt')
+    torch.save(vanilla_lstm_net, save_path)
+    print("saved lstm_net! location: " + save_path)
 
     ''' visualize losses vs. epoch'''
     plt.figure() # new figure
@@ -338,7 +338,7 @@ def main(args):
     plt.plot(avg_train_loss,label='avg train_loss') 
     plt.plot(avg_test_loss,color='red',label='avg test_loss')
     plt.legend()
-    plt.savefig("./saved_figs/" + "gru_"+name+"_avgtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
+    plt.savefig("./saved_figs/" + "lstm_"+name+"_avgtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
     # plt.show()
     # plt.show(block=True)
     
@@ -351,17 +351,17 @@ def main(args):
     plt.ylim((0,10))
     plt.legend()
     # plt.show()
-    plt.savefig("./saved_figs/" + "gru_"+name+"_avg_final_displacement_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
+    plt.savefig("./saved_figs/" + "lstm_"+name+"_avg_final_displacement_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
 
     plt.figure()
     plt.title("Std of train loss vs epoch{} epochs".format(num_epoch))
     plt.plot(std_train_loss)
-    plt.savefig("./saved_figs/" + "gru_"+name+"_stdtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+'.jpeg')
+    plt.savefig("./saved_figs/" + "lstm_"+name+"_stdtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+'.jpeg')
     # plt.show(block=True)
     print("saved images for avg training losses! location: " + "./saved_figs")
 
     # save results to text file
-    txtfilename = os.path.join("./txtfiles/", "gru_"+name+"_avgtrainlosses_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ ".txt")
+    txtfilename = os.path.join("./txtfiles/", "lstm_"+name+"_avgtrainlosses_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ ".txt")
     os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
     with open(txtfilename, "w") as f:
         f.write("\n==============Average train loss vs. epoch:===============\n")
@@ -382,7 +382,7 @@ def main(args):
     print("saved average and std of training losses to text file in: ./txtfiles")
     
     #saving all the data for different observed lengths    
-    txtfilename2 = os.path.join("./txtfiles/", "gru_"+name+"_diff_observed_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) + ".txt")
+    txtfilename2 = os.path.join("./txtfiles/", "lstm_"+name+"_diff_observed_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) + ".txt")
     os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
     with open(txtfilename2,"a+") as g: #opening the file in the append mode
         if(obs_len==2):
