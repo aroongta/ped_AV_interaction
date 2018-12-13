@@ -4,8 +4,9 @@ echo "beginning to train the network on all datasets... press ctrl+C to exit"
 
 ## optimized hyperparameters
 num_epochs=100
+obs_len=12
 lr=0.0007
-pred_len_list=(2 8 12)
+pred_len_list=(8 9 10 11 12)
 declare -a data_dirs=("eth" "zara1" "zara2" "univ" "hotel")
 
 trap "exit" INT
@@ -18,6 +19,7 @@ do
 		--num_epochs $num_epochs \
 		--learning_rate $lr \
 		--pred_len $pred_len \
+		--obs_len $obs_len \
 		--dataset_name $data_dir \
 		--use_cuda
 	done
