@@ -70,8 +70,7 @@ parser.add_argument('--maxNumPeds', type=int, default=27,
 parser.add_argument('--lambda_param', type=float, default=0.0005,
                  help='L2 regularization parameter')
 # cuda parameter
-parser.add_argument('--use_cuda', action="store_true", default=False,
-                 help='Use GPU or not')
+
 # GRU parameter
 parser.add_argument('--gru', action="store_true", default=False,
                  help='True : GRU cell, False: gru cell')
@@ -98,12 +97,13 @@ parser.add_argument('--loader_num_workers', default=4, type=int)
 parser.add_argument('--obs_len', default=8, type=int)
 parser.add_argument('--pred_len', default=12, type=int)
 parser.add_argument('--skip', default=1, type=int)
+parser.add_argument('--use_cuda', action="store_true", default=False,help='Use GPU or not')
 
 args = parser.parse_args()
 
 cur_dataset = args.dataset_name
 
-data_dir = os.path.join('/home/roongtaaahsih/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/train')
+data_dir = os.path.join('/home/ashishpc/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/train')
 
 ''' Class for defining the GRU Network '''
 class GRUNet(nn.Module):
@@ -130,7 +130,11 @@ class GRUNet(nn.Module):
         self.input_size = 2
         self.output_size = 2
         self.dropout_prob = 0.5
-        
+        if(args.use_cuda):
+            self.device = torch.device("cuda:0") # to run on GPU
+        else:
+            self.device=torch.device("cpu")
+
         # linear layer to embed the input position
         self.input_embedding_layer = nn.Linear(self.input_size, self.embedding_size)
         
@@ -156,8 +160,8 @@ class GRUNet(nn.Module):
         '''
         output_seq = []
 
-        ht = torch.zeros(observed_batch.size(1), self.rnn_size, dtype=torch.float)
-        ct = torch.zeros(observed_batch.size(1), self.rnn_size, dtype=torch.float)
+        ht = torch.zeros(observed_batch.size(1), self.rnn_size,device=self.device, dtype=torch.float)
+        ct = torch.zeros(observed_batch.size(1), self.rnn_size,device=self.device, dtype=torch.float)
         seq, peds, coords = observed_batch.shape
 
         # feeding the observed trajectory to the network
@@ -182,7 +186,7 @@ class GRUNet(nn.Module):
 # test function to calculate and return avg test loss after each epoch
 def test(gru_net,args,pred_len=0):
 
-    test_data_dir = os.path.join('/home/roongtaaahsih/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/test')
+    test_data_dir = os.path.join('/home/ashishpc/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/test')
 
     # retrieve dataloader
     dataset, dataloader = loader.data_loader(args, test_data_dir)
@@ -197,13 +201,17 @@ def test(gru_net,args,pred_len=0):
 
     # now, test the model
     for i, batch in enumerate(dataloader):
-        test_observed_batch = batch[0]
-        test_target_batch = batch[1]
+        if(args.use_cuda):
+            test_observed_batch = batch[0].cuda()
+            test_target_batch = batch[1].cuda()
+
         out = gru_net(test_observed_batch, pred_len=pred_len) # forward pass of gru network for training
         cur_test_loss = criterion(out, test_target_batch) # calculate MSE loss
         test_loss.append(cur_test_loss.item())
         out1=out
         target_batch1=test_target_batch  #making a copy of the tensors to convert them to array
+        out1=out1.cpu()
+        target_batch1=target_batch1.cpu()
         seq, peds, coords = test_target_batch.shape
 
         avgD_error=(np.sum(np.sqrt(np.square(out1[:,:,0].detach().numpy()-target_batch1[:,:,0].detach().numpy())+
@@ -246,9 +254,12 @@ def main(args):
     dataset, dataloader = loader.data_loader(args, data_dir)
 
     ''' define the network, optimizer and criterion '''
-    name="em64rnn128" # to add to the name of files
+    name=cur_dataset # to add to the name of files
     # if (cur_dataset == "eth"):
     gru_net = GRUNet()
+    if(args.use_cuda):
+        gru_net.cuda()
+
 
     criterion = nn.MSELoss() # MSE works best for difference between predicted and actual coordinate paths
     optimizer = optim.Adam(gru_net.parameters(), lr=learning_rate)
@@ -272,8 +283,9 @@ def main(args):
         print('======================= Epoch: {cur_epoch} / {total_epochs} =======================\n'.format(cur_epoch=i, total_epochs=num_epoch))
         def closure():
             for i, batch in enumerate(dataloader):
-                train_batch = batch[0]
-                target_batch = batch[1]
+                if(args.use_cuda):
+                    train_batch = batch[0].cuda()
+                    target_batch = batch[1].cuda()
                 # print("train_batch's shape", train_batch.shape)
                 # print("target_batch's shape", target_batch.shape)
                 seq, peds, coords = train_batch.shape # q is number of pedestrians 
@@ -287,6 +299,8 @@ def main(args):
                 #calculating average deisplacement error
                 out1=out
                 target_batch1=target_batch  #making a copy of the tensors to convert them to array
+                out1=out1.cpu()
+                target_batch1=target_batch1.cpu()
                 avgD_error=(np.sum(np.sqrt(np.square(out1[:,:,0].detach().numpy()-target_batch1[:,:,0].detach().numpy())+
                     np.square(out1[:,:,1].detach().numpy()-target_batch1[:,:,1].detach().numpy()))))/(pred_len*peds)
                 train_avgD_error.append(avgD_error)
@@ -381,28 +395,28 @@ def main(args):
         f.write(str(test_finalD_error))
     print("saved average and std of training losses to text file in: ./txtfiles")
     
-    #saving all the data for different observed lengths    
-    txtfilename2 = os.path.join("./txtfiles/", "gru_"+name+"_diff_observed_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) + ".txt")
-    os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
-    with open(txtfilename2,"a+") as g: #opening the file in the append mode
-        if(obs_len==2):
-            g.write("obs_len"+"\t"+"avg_train_loss"+"\t"+"avg_test_loss"+"\t"+"avg_train_dispacement"
-                +"\t"+"final_train_displacement"+"\t"+"avg_test_displacement"+"\t"+"final_test_displacement"+"\n")
-        # outputing the current observed length
-        g.write(str(obs_len)+"\t")
-        #the avg_train_loss after total epochs
-        g.write(str(avg_train_loss[-1])+"\t")
-        # the avg_test_loss after total epochs
-        g.write(str(avg_test_loss[-1])+"\t")
-        # the avg train dispacement error
-        g.write(str(avg_train_avgD_error[-1])+"\t")
-        # the train final displacement error
-        g.write(str(avg_train_finalD_error[-1])+"\t")
-        # the test avg displacement error
-        g.write(str(test_avgD_error[-1])+"\t")
-        # the test final displacement error
-        g.write(str(test_finalD_error[-1])+"\n")
-    print("saved all the results to the text file for observed length: {}".format(obs_len))
+    # #saving all the data for different observed lengths    
+    # txtfilename2 = os.path.join("./txtfiles/", "gru_"+name+"_diff_observed_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) + ".txt")
+    # os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
+    # with open(txtfilename2,"a+") as g: #opening the file in the append mode
+    #     if(obs_len==2):
+    #         g.write("obs_len"+"\t"+"avg_train_loss"+"\t"+"avg_test_loss"+"\t"+"avg_train_dispacement"
+    #             +"\t"+"final_train_displacement"+"\t"+"avg_test_displacement"+"\t"+"final_test_displacement"+"\n")
+    #     # outputing the current observed length
+    #     g.write(str(obs_len)+"\t")
+    #     #the avg_train_loss after total epochs
+    #     g.write(str(avg_train_loss[-1])+"\t")
+    #     # the avg_test_loss after total epochs
+    #     g.write(str(avg_test_loss[-1])+"\t")
+    #     # the avg train dispacement error
+    #     g.write(str(avg_train_avgD_error[-1])+"\t")
+    #     # the train final displacement error
+    #     g.write(str(avg_train_finalD_error[-1])+"\t")
+    #     # the test avg displacement error
+    #     g.write(str(test_avgD_error[-1])+"\t")
+    #     # the test final displacement error
+    #     g.write(str(test_finalD_error[-1])+"\n")
+    # print("saved all the results to the text file for observed length: {}".format(obs_len))
 
 '''main function'''
 if __name__ == '__main__':
