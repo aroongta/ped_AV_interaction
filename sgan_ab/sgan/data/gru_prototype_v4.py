@@ -193,12 +193,12 @@ def test(gru_net,args,pred_len=0):
 
     # define parameters for training and testing loops
     criterion = nn.MSELoss() # MSE works best for difference between predicted and actual coordinate paths
-
+    num_test_peds=0 #counter for the number of pedestrians in the test data
     # initialize lists for capturing losses
     test_loss = []
     test_avgD_error=[]
     test_finalD_error=[]
-
+   
     # now, test the model
     for i, batch in enumerate(dataloader):
         if(args.use_cuda):
@@ -213,7 +213,7 @@ def test(gru_net,args,pred_len=0):
         out1=out1.cpu()
         target_batch1=target_batch1.cpu()
         seq, peds, coords = test_target_batch.shape
-
+        num_test_peds+=peds
         avgD_error=(np.sum(np.sqrt(np.square(out1[:,:,0].detach().numpy()-target_batch1[:,:,0].detach().numpy())+
             np.square(out1[:,:,1].detach().numpy()-target_batch1[:,:,1].detach().numpy()))))/(pred_len*peds)
         test_avgD_error.append(avgD_error)
@@ -229,7 +229,7 @@ def test(gru_net,args,pred_len=0):
     print("============= Average test loss:", avg_testloss, "====================")
 
 
-    return avg_testloss, avg_testD_error,avg_testfinalD_error
+    return avg_testloss, avg_testD_error,avg_testfinalD_error,num_test_peds
 
 
 
@@ -282,13 +282,15 @@ def main(args):
     for i in range(num_epoch):
         print('======================= Epoch: {cur_epoch} / {total_epochs} =======================\n'.format(cur_epoch=i, total_epochs=num_epoch))
         def closure():
+            num_train_peds=0 #counter for the number of pedestrians in the training data
             for i, batch in enumerate(dataloader):
                 if(args.use_cuda):
                     train_batch = batch[0].cuda()
                     target_batch = batch[1].cuda()
                 # print("train_batch's shape", train_batch.shape)
                 # print("target_batch's shape", target_batch.shape)
-                seq, peds, coords = train_batch.shape # q is number of pedestrians 
+                seq, peds, coords = train_batch.shape # q is number of pedestrians
+                num_train_peds+=peds 
                 out = gru_net(train_batch, pred_len=pred_len) # forward pass of gru network for training
                 # print("out's shape:", out.shape)
                 optimizer.zero_grad() # zero out gradients
@@ -328,7 +330,7 @@ def main(args):
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print("average train loss: {}".format(avg_train_loss))
         print("average std loss: {}".format(std_train_loss))
-        avgTestLoss,avgD_test,finalD_test=test(gru_net,args,pred_len)
+        avgTestLoss,avgD_test,finalD_test,num_test_peds=test(gru_net,args,pred_len)
         avg_test_loss.append(avgTestLoss)
         test_finalD_error.append(finalD_test)
         test_avgD_error.append(avgD_test)
@@ -378,6 +380,8 @@ def main(args):
     txtfilename = os.path.join("./txtfiles/", "gru_"+name+"_avgtrainlosses_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ ".txt")
     os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
     with open(txtfilename, "w") as f:
+        f.write("Number of pedestrians in the training data: {}\n".format(num_train_peds))    
+        f.write("Number of pedestrians in the testing data: {}\n".format(num_test_peds))  
         f.write("\n==============Average train loss vs. epoch:===============\n")
         f.write(str(avg_train_loss))
         f.write("\nepochs: " + str(num_epoch))
