@@ -272,13 +272,13 @@ def main(args):
     test_avgD_error=[]
     std_train_loss = []
     std_test_loss = []
-    num_train_peds=0 #counter for number of pedestrians taken for each epoch
 
     '''training loop'''
     for i in range(num_epoch):
-        num_train_peds=0
+       
         print('======================= Epoch: {cur_epoch} / {total_epochs} =======================\n'.format(cur_epoch=i, total_epochs=num_epoch))
         def closure():
+            num_train_peds=0 #counter for number of pedestrians taken for each epoch
             for i, batch in enumerate(dataloader):
                 if(args.use_cuda):
                 	train_batch = batch[0].cuda()
