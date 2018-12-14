@@ -272,13 +272,15 @@ def main(args):
     test_avgD_error=[]
     std_train_loss = []
     std_test_loss = []
+    num_train_peds=[] #counter for number of pedestrians taken for each epoch
+
 
     '''training loop'''
     for i in range(num_epoch):
        
         print('======================= Epoch: {cur_epoch} / {total_epochs} =======================\n'.format(cur_epoch=i, total_epochs=num_epoch))
         def closure():
-            num_train_peds=0 #counter for number of pedestrians taken for each epoch
+            train_peds=0 #counter for number of pedestrians taken for each epoch
             for i, batch in enumerate(dataloader):
                 if(args.use_cuda):
                 	train_batch = batch[0].cuda()
@@ -286,7 +288,7 @@ def main(args):
                 # print("train_batch's shape", train_batch.shape)
                 # print("target_batch's shape", target_batch.shape)
                 seq, peds, coords = train_batch.shape # q is number of pedestrians 
-                num_train_peds+=peds #keeping a count of the number of peds in the data
+                train_peds+=peds #keeping a count of the number of peds in the data
                 out = vanilla_lstm_net(train_batch, pred_len=pred_len) # forward pass of lstm network for training
                 # print("out's shape:", out.shape)
                 optimizer.zero_grad() # zero out gradients
@@ -311,6 +313,7 @@ def main(args):
                 train_loss.append(cur_train_loss.item())
                 cur_train_loss.backward() # backward prop
                 optimizer.step() # step like a mini-batch (after all pedestrians)
+            num_train_peds.append(train_peds)
             return cur_train_loss
         optimizer.step(closure) # update weights
 
@@ -332,7 +335,6 @@ def main(args):
         test_avgD_error.append(avgD_test)
         print("test finalD error: ",finalD_test)
         print("test avgD error: ",avgD_test)
-        #avg_test_loss.append(test(lstm_net,args,pred_len)) ##calliing test function to return avg test loss at each epoch
 
 
     '''after running through epochs, save your model and visualize.
@@ -376,7 +378,7 @@ def main(args):
     txtfilename = os.path.join("./txtfiles/", "lstm_"+name+"_avgtrainlosses_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+ ".txt")
     os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
     with open(txtfilename, "w") as f:
-    	f.write("Number of pedestrians in the traning data: {}\n".format(num_train_peds))
+    	f.write("Number of pedestrians in the traning data: {}\n".format(num_train_peds[-1]))
     	f.write("Number of pedestrians in the test dataset: {}\n".format(num_test_peds))
     	f.write("\n==============Average train loss vs. epoch:===============\n")
     	f.write(str(avg_train_loss))
