@@ -1,0 +1,37 @@
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	2	0.8980632751924755	2.530446891155508	0.19792346393130375	1.6505023071170744	1.7236630609761736	2.0431061643599886	2.4506971311354984
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	3	1.1038034276192232	3.5566986004511514	0.238742062198864	1.8036743529592172	1.9867585731993078	2.3951563535569202	3.2043464024028423
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	4	1.348692231557586	4.935845868154005	0.2902352042147546	1.9426195772987882	2.2360438621885677	2.8191611959187917	4.025596857588695
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	5	1.6030207438763127	6.227149123237247	0.35156301589337097	2.04674663280594	2.4501282802335194	3.140666163341793	4.731601975429724
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	6	1.9180779756287292	7.978417440622795	0.4030782616592835	2.1856280571061855	2.6901400919755174	3.504179738188246	5.40599723429357
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	7	2.193355183843947	10.104808223140132	0.4555205036243492	2.335260550662929	2.9332312403021765	3.959258857194222	6.21238809583935
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	8	2.4874558367253004	10.561758202664992	0.5420598483770964	2.4148375021311383	3.1058649196164008	3.9697073198461372	6.493147526128265
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	9	2.874697633389826	11.578444620837336	0.6478959598926946	2.5766114289710718	3.341578546252424	4.158092706089253	6.9765362589524225
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	10	3.152784061466042	13.692441987402646	0.7829398105289924	2.6241743370991575	3.4826269748320913	4.4850801942233325	7.466581809759515
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	11	3.6020854923343517	13.884901946699115	0.8238836932394581	2.834573530240971	3.722497170982326	4.514707792803663	7.728080031806796
+Dataset: eth ;Number of epochs: 2
+obs_len	pred_len	avg_train_loss	avg_test_loss	std_train_loss	avg_train_dispacement	final_train_displacement	avg_test_displacement	final_test_displacement
+2	12	4.008941157216049	16.27651842435201	0.8962174176867308	2.9496147617693382	3.878470391983217	4.835143195079392	8.170123597474651
+3	2	0.9598179968247502	2.799144293087116	0.21867164320884444	1.6032547501505598	1.7010208353505127	2.1546662761394475	2.572543887500998
+3	3	1.1232626234190632	4.15065004789468	0.2570381379375668	1.7636999381211687	1.9793601415938995	2.632848033313083	3.449800892908419
+3	4	1.4051697677082757	4.877730418765355	0.28416937616691706	1.884373485514169	2.215025915777361	2.7790561659611144	3.953080059246494
+3	5	1.705608046070464	7.204969061522925	0.3640703331586148	2.0073992089561434	2.4504935710654547	3.4093189487307525	5.008799649008042

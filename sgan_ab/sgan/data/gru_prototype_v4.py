@@ -424,6 +424,32 @@ def main(args):
     #     # the test final displacement error
     #     g.write(str(test_finalD_error[-1])+"\n")
     # print("saved all the results to the text file for observed length: {}".format(obs_len))
+    txtfilename2 = os.path.join("./txtfiles/", "GRU_Results"+name+"_diff_obs_pred_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch)+ ".txt")
+    os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
+    with open(txtfilename2,"a+") as g: #opening the file in the append mode
+        if(pred_len==2):
+            g.write("Dataset: "+name+" ;Number of epochs: {}".format(num_epoch)+"\n")
+            g.write("obs_len"+"\t"+"pred_len"+"\t"+"avg_train_loss"+"\t"+"avg_test_loss"+"\t"+"std_train_loss"+"\t"
+                +"avg_train_dispacement"+"\t"+"final_train_displacement"+"\t"+"avg_test_displacement"+"\t"+"final_test_displacement"+"\n")
+        # outputing the current observed length
+        g.write(str(obs_len)+"\t")
+        # outputing the current prediction length
+        g.write(str(pred_len)+"\t")
+        #the avg_train_loss after total epochs
+        g.write(str(avg_train_loss[-1])+"\t")
+        # the avg_test_loss after total epochs
+        g.write(str(avg_test_loss[-1])+"\t")
+        # the standard deviation of train loss
+        g.write(str(std_train_loss[-1])+"\t")
+        # the avg train dispacement error
+        g.write(str(avg_train_avgD_error[-1])+"\t")
+        # the train final displacement error
+        g.write(str(avg_train_finalD_error[-1])+"\t")
+        # the test avg displacement error
+        g.write(str(test_avgD_error[-1])+"\t")
+        # the test final displacement error
+        g.write(str(test_finalD_error[-1])+"\n")
+    print("saved all the results to the text file for observed length: {}".format(obs_len))
 
 '''main function'''
 if __name__ == '__main__':

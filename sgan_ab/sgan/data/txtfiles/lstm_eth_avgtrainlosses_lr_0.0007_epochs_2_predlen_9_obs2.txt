@@ -1,0 +1,18 @@
+Number of pedestrians in the traning data: 41567
+Number of pedestrians in the test dataset: 1924
+
+==============Average train loss vs. epoch:===============
+[7.255802245240112, 2.874697633389826]
+epochs: 2
+==============Std train loss vs. epoch:===================
+[8.205908568400433, 0.6478959598926946]
+==============Avg test loss vs. epoch:===================
+[12.136859898981841, 11.578444620837336]
+==============Avg train displacement error:===================
+[3.1322301065842195, 2.5766114289710718]
+==============Final train displacement error:===================
+[3.7680331177134385, 3.341578546252424]
+==============Avg test displacement error:===================
+[4.2944380598033325, 4.158092706089253]
+==============Final test displacement error:===================
+[7.040633395287488, 6.9765362589524225]
