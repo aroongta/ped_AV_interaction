@@ -357,7 +357,7 @@ def main(args):
     plt.plot(avg_train_loss,label='avg train_loss') 
     plt.plot(avg_test_loss,color='red',label='avg test_loss')
     plt.legend()
-    plt.savefig("./saved_figs/" + "gru_"+name+"_avgtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
+    plt.savefig("./saved_figs/" + "gru_"+name+"_avgtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.png')
     # plt.show()
     # plt.show(block=True)
     
@@ -370,12 +370,12 @@ def main(args):
     plt.ylim((0,10))
     plt.legend()
     # plt.show()
-    plt.savefig("./saved_figs/" + "gru_"+name+"_avg_final_displacement_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.jpeg')
+    plt.savefig("./saved_figs/" + "gru_"+name+"_avg_final_displacement_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+  '.png')
 
     plt.figure()
     plt.title("Std of train loss vs epoch{} epochs".format(num_epoch))
     plt.plot(std_train_loss)
-    plt.savefig("./saved_figs/" + "gru_"+name+"_stdtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+'.jpeg')
+    plt.savefig("./saved_figs/" + "gru_"+name+"_stdtrainloss_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch) + '_predlen_' + str(pred_len) +'_obs'+str(obs_len)+'.png')
     # plt.show(block=True)
     print("saved images for avg training losses! location: " + "./saved_figs")
 
