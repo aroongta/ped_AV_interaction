@@ -427,7 +427,8 @@ def main(args):
         if(pred_len==2):
             g.write("Dataset: "+name+" ;Number of epochs: {}".format(num_epoch)+"\n")
             g.write("obs_len"+"\t"+"pred_len"+"\t"+"avg_train_loss"+"\t"+"avg_test_loss"+"\t"+"std_train_loss"+"\t"
-            	+"avg_train_dispacement"+"\t"+"final_train_displacement"+"\t"+"avg_test_displacement"+"\t"+"final_test_displacement"+"\n")
+            	+"avg_train_dispacement"+"\t"+"final_train_displacement"+"\t"+"avg_test_displacement"+"\t"
+            	+"final_test_displacement"+"\t"+"Num_train_peds"+"\t"+"Num_Test_peds"+"\n")
         # outputing the current observed length
         g.write(str(obs_len)+"\t")
         # outputing the current prediction length
@@ -445,7 +446,11 @@ def main(args):
         # the test avg displacement error
         g.write(str(test_avgD_error[-1])+"\t")
         # the test final displacement error
-        g.write(str(test_finalD_error[-1])+"\n")
+        g.write(str(test_finalD_error[-1])+"\t")
+        # the number of pedestrians in the traininig dataset
+        g.write(num_train_peds[-1]+"\t")
+        # Number of pedestrian sin the training dataset
+        g.write(num_test_peds+"\n")
     print("saved all the results to the text file for observed length: {}".format(obs_len))
 
 '''main function'''
