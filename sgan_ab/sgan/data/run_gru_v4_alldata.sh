@@ -16,14 +16,13 @@ do
 	do	
 		for pred_len in ${pred_len_list[@]}
 		do
-			echo "***running with $num_epochs epochs and $pred_len pred_len for $data_dir dataset***"
-			python3 gru_prototype_v4.py \
+			echo "***running with $num_epochs epochs $obs_len obs_len and $pred_len pred_len for $data_dir dataset***"
+			python3 gru_prototype_v41.py \
 			--num_epochs $num_epochs \
 			--learning_rate $lr \
 			--pred_len $pred_len \
 			--obs_len $obs_len \
-			--dataset_name $data_dir \
-			--use_cuda
+			--dataset_name $data_dir
 		done
 	done
 done

@@ -1,6 +1,6 @@
 #including relu activaton and dropout after the first linear layer
 # prototype of gru network for pedestrian modeling
-# written by: Bryan Zhao and Ashish Roongta, Fall 2018
+# written by: Ashish Roongta, Fall 2018
 # carnegie mellon university
 
 # import relevant libraries
@@ -103,7 +103,7 @@ args = parser.parse_args()
 
 cur_dataset = args.dataset_name
 
-data_dir = os.path.join('/home/ashishpc/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/train')
+data_dir = os.path.join('/mnt/h/Ashish/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/train')
 
 ''' Class for defining the GRU Network '''
 class GRUNet(nn.Module):
@@ -186,7 +186,7 @@ class GRUNet(nn.Module):
 # test function to calculate and return avg test loss after each epoch
 def test(gru_net,args,pred_len=0):
 
-    test_data_dir = os.path.join('/home/ashishpc/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/test')
+    test_data_dir = os.path.join('/mnt/h/Ashish/ped_trajectory_prediction/sgan_ab/scripts/datasets/', cur_dataset + '/test')
 
     # retrieve dataloader
     dataset, dataloader = loader.data_loader(args, test_data_dir)
@@ -433,7 +433,7 @@ def main(args):
     #     # the test final displacement error
     #     g.write(str(test_finalD_error[-1])+"\n")
     # print("saved all the results to the text file for observed length: {}".format(obs_len))
-    txtfilename2 = os.path.join("./txtfiles/", "GRU_Results"+name+"_diff_obs_pred_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch)+ ".txt")
+    txtfilename2 = os.path.join("./txtfiles/", "GRU_RESULTS"+name+"_diff_obs_pred_len_lr_"+ str(learning_rate) + '_epochs_' + str(num_epoch)+ ".txt")
     os.makedirs(os.path.dirname("./txtfiles/"), exist_ok=True) # make directory if it doesn't exist
     with open(txtfilename2,"a+") as g: #opening the file in the append mode
         if(pred_len==2):
