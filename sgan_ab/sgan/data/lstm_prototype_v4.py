@@ -1,6 +1,6 @@
 #including relu activaton and dropout after the first linear layer
 # prototype of lstm network for pedestrian modeling
-# written by: Bryan Zhao and Ashish Roongta, Fall 2018
+# written by: Ashish Roongta, Fall 2018
 # carnegie mellon university
 
 # import relevant libraries
@@ -202,6 +202,9 @@ def test(vanilla_lstm_net,args,pred_len=0):
         if(args.use_cuda):
         	test_observed_batch = batch[0].cuda()
         	test_target_batch = batch[1].cuda()
+        else:
+            test_observed_batch=batch[0]
+            test_target_batch=batch[1]
         out = vanilla_lstm_net(test_observed_batch, pred_len=pred_len) # forward pass of lstm network for training
         cur_test_loss = criterion(out, test_target_batch) # calculate MSE loss
         test_loss.append(cur_test_loss.item())
@@ -253,10 +256,12 @@ def main(args):
     ''' define the network, optimizer and criterion '''
     name=cur_dataset # to add to the name of files
     vanilla_lstm_net = VanillaLSTMNet()
+    criterion = nn.MSELoss() # MSE works best for difference between predicted and actual coordinate paths
+
     if(args.use_cuda):
     	vanilla_lstm_net.cuda()
+        criterion.cuda()
 
-    criterion = nn.MSELoss() # MSE works best for difference between predicted and actual coordinate paths
     optimizer = optim.Adam(vanilla_lstm_net.parameters(), lr=learning_rate)
 
     # initialize lists for capturing losses/errors
@@ -285,6 +290,9 @@ def main(args):
                 if(args.use_cuda):
                 	train_batch = batch[0].cuda()
                 	target_batch = batch[1].cuda()
+                else:
+                    train_batch=batch[0]
+                    target_batch=batch[1]
                 # print("train_batch's shape", train_batch.shape)
                 # print("target_batch's shape", target_batch.shape)
                 seq, peds, coords = train_batch.shape # q is number of pedestrians 
