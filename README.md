@@ -35,3 +35,4 @@ References
 [4]. George Kouskoulis, et al.: Pedestrian simulation: Theoretical models vs. data-driven techniques.
 [5]. Jan Hosang, et al.: Taking a Deeper Look at Pedestrians.
 [6]. Anirudh Vemula, et al.: Social Attention: Modeling Attention in Human Crowds.
+[7]. Thanks to Anirudh Vemula (https://github.com/vvanirudh) for the dataloader.
